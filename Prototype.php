@@ -104,6 +104,10 @@
             $this->func[$name] = $func;
         }
         
+        protected function removeFunc($name) {
+            unset($this->func[$name]);
+        }
+        
         protected function getCall($name) {
             $varCall = false;
             $varThat = false;
