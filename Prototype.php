@@ -1,4 +1,5 @@
 <?php
+namespace {
     class Prototype {
         public $prototype;
         protected $content = array();
@@ -76,8 +77,10 @@
                 if(!isset($this->schema[$name])) {
                     throw new \Exception('This variable(\'' . $name . '\') is not defined in schema.');
                 }
-                if(gettype($value) != $this->schema[$name]) {
-                    throw new Exception('Variable(\'' . $name . '\') format is wrong.');
+                if(!isset($value)) {
+                    // nothing
+                } elseif(gettype($value) != $this->schema[$name]) {
+                    throw new Exception('Variable(\'' . $name . '\'):' . gettype($value) . ' format is wrong.');
                 }
             }
             
@@ -93,7 +96,7 @@
         }
         
         protected function getFunc($name) {
-            if($this->funcExists($name)) {
+            if(isset($this->func[$name])) {
                 return $this->func[$name];
             } else {
                 return null;
@@ -105,6 +108,7 @@
         }
         
         protected function removeFunc($name) {
+            $this->func[$name] = null;
             unset($this->func[$name]);
         }
         
@@ -128,7 +132,10 @@
                     $varThat = true;
                     break;
                 case isset($this->prototype):
-                    return $this->prototype->getCall($name);
+                    $varCall = array($this->prototype, $name);
+                    if(method_exists($this->prototype, 'getCall')) {
+                        return $this->prototype->getCall($name);
+                    }
             }
             return array($varCall, $varThat);
         }
@@ -150,9 +157,11 @@
             return $this->getComponent($name);
         }
         
-        protected function getComponent($name) {
+        protected function getComponent($name = null) {
             if(is_string($name) && isset($this->component[$name])) {
                 return $this->component[$name];
+            } elseif($name === true) {
+                return $this->component;
             } else {
                 return null;
             }
@@ -169,5 +178,19 @@
                 throw new Exception('Argument 1 must be a string or array pair.');
             }
         }
+        
+        protected function removeComponent($name) {
+            if(is_array($name)) {
+                foreach($name as $varName) {
+                    $this->removeComponent($varName);
+                }
+            } elseif(is_string($name)) {
+                $this->component[$name] = null;
+                unset($this->component[$name]);
+            } else {
+                throw new Exception('Argument 1 must be a string or array.');
+            }
+        }
     }
+}
 ?>
