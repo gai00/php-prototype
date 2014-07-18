@@ -1,34 +1,21 @@
 <?php
+namespace {
     class Module extends Prototype {
-        protected $uber = null;
         protected $parent = null;
         
         public static $funcSetModule;
+        public static $funcListModule;
         public static $funcHoist;
+        
         public static function enhance($prototype) {
             $prototype->setFunc('_setModule', self::$funcSetModule);
+            $prototype->setFunc('_listModule', self::$funcListModule);
             $prototype->setFunc('_hoist', self::$funcHoist);
         }
         
         protected function moduleInit(Prototype $prototype, $name) {
             $this->setParent($prototype);
-            $this->setUber($prototype);
             $prototype->setComponent($name, $this);
-        }
-        
-        protected function getUber() {
-            return $this->uber;
-        }
-        
-        protected function setUber(Prototype $uber) {
-            if(property_exists($uber, 'uber')) {
-                $varUber = $uber->getUber();
-                if(is_object($varUber)) {
-                    $this->uber = $varUber;
-                }
-            } elseif(is_object($uber)) {
-                $this->uber = $uber;
-            }
         }
         
         protected function getParent() {
@@ -40,12 +27,20 @@
         }
     }
     
-    Module::$funcSetModule = function($that, $name, $module) {
-        if(is_string($name)) {
+    Module::$funcSetModule = function($that, $name, $module = null) {
+        if(is_array($name)) {
+            foreach($name as $varName => $varMod) {
+                $varMod->moduleInit($that, $varName);
+            }
+        } elseif(is_string($name)) {
             $module->moduleInit($that, $name);
         } else {
-            throw new Exception('Module name must be a string.');
+            throw new Exception('Argument 1 must be a string or array pair.');
         }
+    };
+    
+    Module::$funcListModule = function($that) {
+        return array_keys($that->getComponent(true));
     };
     
     Module::$funcHoist = function($that, $moduleName, $funcName) {
@@ -61,4 +56,5 @@
         }
         $that->setFunc($funcName, array($varModule, $funcName));
     };
+}
 ?>
