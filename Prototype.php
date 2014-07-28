@@ -2,6 +2,7 @@
 namespace {
     class Prototype {
         public $prototype;
+        protected $parent;
         protected $content = array();
         protected $component = array();
         protected $schemaEnabled = false;
@@ -190,6 +191,50 @@ namespace {
             } else {
                 throw new Exception('Argument 1 must be a string or array.');
             }
+        }
+        
+        // move from module
+        protected function moduleInit(Prototype $prototype, $name) {
+            $this->setParent($prototype);
+            $prototype->setComponent($name, $this);
+        }
+        
+        protected function getParent() {
+            return $this->parent;
+        }
+        
+        protected function setParent($parent) {
+            $this->parent = $parent;
+        }
+        
+        protected function setModule($name, $module = null) {
+            if(is_array($name)) {
+                foreach($name as $varName => $varMod) {
+                    $varMod->moduleInit($this, $varName);
+                }
+            } elseif(is_string($name)) {
+                $module->moduleInit($this, $name);
+            } else {
+                throw new Exception('Argument 1 must be a string or array pair.');
+            }
+        }
+        
+        protected function listModule() {
+            return array_keys($this->getComponent(true));
+        }
+        
+        protected function hoist($moduleName, $funcName) {
+            $varModule = $this;
+            if(is_array($moduleName)) {
+                foreach($moduleName as $varName) {
+                    $varModule = $varModule->$varName;
+                }
+            } elseif(is_object($moduleName)) {
+                $varModule = $moduleName;
+            } elseif(is_string($moduleName)) {
+                $varModule = $varModule->$moduleName;
+            }
+            $this->setFunc($funcName, array($varModule, $funcName));
         }
     }
 }
