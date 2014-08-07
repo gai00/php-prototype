@@ -52,11 +52,9 @@ A module system by using Prototype.
 ```php
 <?php
     require_once('Prototype.php');
-    require_once('Module.php');
     
     $a = new Prototype();
-    Module::enhance($a);
-    $b = new Module();
+    $b = new Prototype();
     $b->setFunc('_testFunc', function($that, $val) {
         $that->set('test', $val);
     });
@@ -87,11 +85,9 @@ A hybrid usage.
 ```php
 <?php
     require_once('Prototype.php');
-    require_once('Module.php');
     
     $a = new Prototype();
-    Module::enhance($a);
-    $b = new Module();
+    $b = new Prototype();
     $a->setModule('mod', $b);
     $c = new Prototype();
     $c->setFunc('_modProFunc', function($that, $val) {
